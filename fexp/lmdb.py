@@ -115,7 +115,8 @@ class LmdbDb(object):
             Name of the database.
         """
         lmdb_path = os.path.join(path, db_name)
-        lmdb_keys_path = os.path.join(path, db_name + b'_keys.lst')
+
+        lmdb_keys_path = os.path.join(path, db_name + '_keys.lst')
         self.lmdb_path = lmdb_path
         self.env = lmdb.open(lmdb_path, max_readers=None, readonly=True, lock=False,
                              readahead=False, meminit=False)
@@ -132,8 +133,8 @@ class LmdbDb(object):
         with self.env.begin(write=False) as txn:
             length = txn.stat()['entries']
             # Each item has data and metadata plus one length key
-            itemlen = 2*int(json.loads(str(txn.get(self._keys[0] + '_len')))) + 1
-            self.length = length / itemlen
+            itemlen = 2*(json.loads(bytes(txn.get(self._keys[0].encode() + b'_len')).decode())) + 1
+            self.length = length // itemlen
 
     def __delitem__(self, key):
         idx = self._keys.index[key]
