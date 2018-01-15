@@ -10,10 +10,7 @@ import lmdb
 import os
 import copy
 from tqdm import tqdm
-try:
-    import simplejson as json
-except ImportError:
-    import json
+import json
 import numpy as np
 from .utils import read_list, write_list
 
@@ -149,15 +146,15 @@ class LmdbDb(object):
         with self.env.begin(buffers=True, write=False) as txn:
             if key not in self._keys:
                 raise KeyError(key)
-            itemlen = json.loads(str(txn.get(key + '_len')))
+            itemlen = json.loads(bytes(txn.get(key.encode() + b'_len')).decode())
             result = []
             for i in range(itemlen):
                 result.append(self._getsubitem(key + '_{}'.format(i), txn))
         return result
 
     def _getsubitem(self, key, txn):
-        buf = txn.get(key)
-        meta_buf = txn.get(key + '_metadata')
+        buf = txn.get(key.encode())
+        meta_buf = bytes(txn.get(key.encode() + b'_metadata')).decode()
 
         metadata = json.loads(str(meta_buf))
         dtype = metadata['dtype']
